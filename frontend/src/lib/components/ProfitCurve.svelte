@@ -25,6 +25,7 @@
 
 	let chartHost = $state<HTMLDivElement | null>(null);
 	let chart = $state<ECharts | null>(null);
+	let chartWidth = $state(0);
 	let animationStep = $state(5);
 	let isReplaying = $state(false);
 
@@ -91,6 +92,7 @@
 		const minQuantity = points.length > 0 ? Math.min(...points.map((point) => point.order_quantity)) : 0;
 		const maxQuantity = points.length > 0 ? Math.max(...points.map((point) => point.order_quantity)) : 0;
 		const quantitiesMerged = Math.abs(recommendedQuantity - analyticQuantity) < 0.15;
+		const isCompact = chartWidth > 0 && chartWidth < 680;
 
 		const axisColor = darkMode ? 'rgba(255,255,255,0.25)' : 'rgba(21, 37, 35, 0.22)';
 		const gridColor = darkMode ? 'rgba(255,255,255,0.10)' : 'rgba(21, 37, 35, 0.08)';
@@ -157,7 +159,7 @@
 				animationDuration: stepAnimation(1, 900),
 				animationDurationUpdate: stepAnimation(1, 900),
 				endLabel: {
-					show: true,
+					show: !isCompact,
 					formatter: 'Analytic profit',
 					color: anaColor,
 					fontSize: 13,
@@ -181,7 +183,7 @@
 				animationDuration: stepAnimation(2, 900),
 				animationDurationUpdate: stepAnimation(2, 900),
 				endLabel: {
-					show: true,
+					show: !isCompact,
 					formatter: 'Simulated profit',
 					color: simColor,
 					fontSize: 13,
@@ -328,17 +330,23 @@
 			animationEasing: 'cubicOut',
 			animationDurationUpdate: 0,
 			animationEasingUpdate: isReplaying ? 'cubicOut' : undefined,
-			grid: { top: 24, right: 210, bottom: 52, left: 72, containLabel: true },
+			grid: {
+				top: isCompact ? 16 : 24,
+				right: isCompact ? 16 : 210,
+				bottom: isCompact ? 108 : 52,
+				left: isCompact ? 52 : 72,
+				containLabel: true
+			},
 			tooltip: {
 				trigger: 'axis',
 				triggerOn: 'mousemove|click',
 				backgroundColor: tooltipBg,
 				borderWidth: 0,
-				padding: 16,
+				padding: isCompact ? 12 : 16,
 				textStyle: {
 					color: tooltipText,
 					fontFamily: 'Space Grotesk Variable, sans-serif',
-					fontSize: 14
+					fontSize: isCompact ? 12 : 14
 				},
 				valueFormatter: (value) =>
 					typeof value === 'number' ? currency(value) : String(value ?? ''),
@@ -358,13 +366,26 @@
 				}
 			},
 			legend: {
+				type: isCompact ? 'scroll' : 'plain',
+				left: 0,
+				right: 0,
 				bottom: 0,
-				itemWidth: 12,
-				itemHeight: 12,
+				itemWidth: isCompact ? 10 : 12,
+				itemHeight: isCompact ? 10 : 12,
+				itemGap: isCompact ? 12 : 18,
+				pageIconColor: labelColor,
+				pageIconInactiveColor: axisColor,
+				pageIconSize: isCompact ? 10 : 12,
+				pageTextStyle: {
+					color: labelColor,
+					fontFamily: 'Space Grotesk Variable, sans-serif',
+					fontSize: isCompact ? 11 : 12
+				},
 				selectedMode: true,
 				textStyle: {
 					color: labelColor,
-					fontFamily: 'Space Grotesk Variable, sans-serif'
+					fontFamily: 'Space Grotesk Variable, sans-serif',
+					fontSize: isCompact ? 11 : 13
 				}
 			},
 			xAxis: {
@@ -373,12 +394,18 @@
 				max: maxQuantity,
 				name: 'Order quantity',
 				nameLocation: 'middle',
-				nameGap: 34,
-				nameTextStyle: { color: labelColor },
+				nameGap: isCompact ? 24 : 34,
+				nameTextStyle: {
+					color: labelColor,
+					fontSize: isCompact ? 11 : 13
+				},
 				axisLine: { lineStyle: { color: axisColor } },
 				splitLine: { lineStyle: { color: gridColor } },
+				splitNumber: isCompact ? 4 : 6,
 				axisLabel: {
 					color: labelColor,
+					fontSize: isCompact ? 11 : 13,
+					hideOverlap: true,
 					formatter: (value: number) => value.toFixed(0)
 				}
 			},
@@ -386,6 +413,7 @@
 				type: 'value',
 				axisLabel: {
 					color: labelColor,
+					fontSize: isCompact ? 11 : 13,
 					formatter: (value: number) => `$${value.toFixed(0)}`
 				},
 				axisLine: { show: false },
@@ -400,6 +428,8 @@
 		if (!chart || points.length === 0) {
 			return;
 		}
+
+		void chartWidth;
 
 		chart.setOption(buildOption(), {
 			notMerge: false,
@@ -416,6 +446,7 @@
 				return;
 			}
 
+			chartWidth = chartHost.clientWidth;
 			const echarts = await import('echarts');
 			chart = echarts.init(chartHost, undefined, { renderer: 'canvas' });
 			chart.setOption(buildOption(), {
@@ -424,7 +455,11 @@
 				replaceMerge: ['series']
 			});
 
-			resizeObserver = new ResizeObserver(() => chart?.resize());
+			resizeObserver = new ResizeObserver((entries) => {
+				const width = entries[0]?.contentRect.width ?? chartHost?.clientWidth ?? 0;
+				chartWidth = width;
+				chart?.resize();
+			});
 			resizeObserver.observe(chartHost);
 		}
 
@@ -450,5 +485,11 @@
 	.chart-host {
 		width: 100%;
 		min-height: 20rem;
+	}
+
+	@media (max-width: 760px) {
+		.chart-host {
+			min-height: 24rem;
+		}
 	}
 </style>
