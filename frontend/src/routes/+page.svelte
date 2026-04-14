@@ -14,6 +14,7 @@
 	let hasRequestedSimulation = $state(false);
 	let darkMode = $state(false);
 	let replayKey = $state(0);
+	let chartScaleMode = $state<'focused' | 'full'>('focused');
 
 	const demandLower = $derived.by(() => Math.max(scenario.average_demand - scenario.uniform_plus_minus, 0));
 	const demandUpper = $derived.by(() => Math.max(scenario.average_demand + scenario.uniform_plus_minus, 0));
@@ -354,17 +355,41 @@
 								<p class="eyebrow">Profit curve</p>
 								<h3>Average profit vs order quantity</h3>
 							</div>
-							<p class="chart-hint">
-								<Tooltip
-									hint="The solid line shows simulated profit over the search grid, the dashed line shows the analytic expected profit curve, and the green dashed band shows the 95% confidence interval around the simulated profit estimate."
-								/>
-							</p>
+							<div class="chart-tools">
+								<label class="chart-scale">
+									<span>Y-axis</span>
+									<div class="chart-scale-toggle" role="group" aria-label="Adjust y-axis scale">
+										<button
+											type="button"
+											class:active={chartScaleMode === 'focused'}
+											aria-pressed={chartScaleMode === 'focused'}
+											onclick={() => (chartScaleMode = 'focused')}
+										>
+											Focused
+										</button>
+										<button
+											type="button"
+											class:active={chartScaleMode === 'full'}
+											aria-pressed={chartScaleMode === 'full'}
+											onclick={() => (chartScaleMode = 'full')}
+										>
+											Full
+										</button>
+									</div>
+								</label>
+								<p class="chart-hint">
+									<Tooltip
+										hint="The solid line shows simulated profit over the search grid, the dashed line shows the analytic expected profit curve, and the green dashed band shows the 95% confidence interval around the simulated profit estimate. Use the y-axis control to switch between a focused and full-scale view."
+									/>
+								</p>
+							</div>
 						</div>
 						<ProfitCurve
 							points={result.profit_curve}
 							recommendedQuantity={result.recommendation.optimal_order_quantity}
 							analyticQuantity={result.recommendation.analytic_order_quantity}
 							meanDemand={result.distribution.mean}
+							yAxisScale={chartScaleMode}
 							darkMode={darkMode}
 							replayKey={replayKey}
 						/>
@@ -822,6 +847,61 @@
 		font-size: 1rem;
 	}
 
+	.chart-tools {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+
+	.chart-scale {
+		display: grid;
+		gap: 0.22rem;
+	}
+
+	.chart-scale span {
+		font-size: 0.66rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--ink-soft);
+	}
+
+	.chart-scale-toggle {
+		display: inline-flex;
+		padding: 0.18rem;
+		border-radius: 999px;
+		background: rgba(19, 34, 31, 0.06);
+		border: 1px solid rgba(19, 34, 31, 0.08);
+	}
+
+	:global([data-theme='dark']) .chart-scale-toggle {
+		background: rgba(255, 255, 255, 0.06);
+		border-color: rgba(255, 255, 255, 0.08);
+	}
+
+	.chart-scale-toggle button {
+		border: 0;
+		background: transparent;
+		color: var(--ink-soft);
+		padding: 0.32rem 0.72rem;
+		border-radius: 999px;
+		font-size: 0.74rem;
+		font-weight: 700;
+		line-height: 1;
+	}
+
+	.chart-scale-toggle button.active {
+		background: rgba(255, 255, 255, 0.9);
+		color: var(--ink);
+		box-shadow: 0 6px 18px rgba(23, 36, 34, 0.08);
+	}
+
+	:global([data-theme='dark']) .chart-scale-toggle button.active {
+		background: rgba(12, 18, 17, 0.92);
+		color: var(--ink);
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.24);
+	}
+
 	.policy-footer {
 		margin-top: 0.75rem;
 		padding-top: 0.75rem;
@@ -947,6 +1027,11 @@
 		.panel-head,
 		.card-head {
 			flex-direction: column;
+		}
+
+		.chart-tools {
+			width: 100%;
+			justify-content: space-between;
 		}
 
 		.chart-footer {

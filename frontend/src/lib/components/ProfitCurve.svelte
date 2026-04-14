@@ -10,6 +10,7 @@
 		recommendedQuantity: number;
 		analyticQuantity: number;
 		meanDemand: number;
+		yAxisScale?: 'focused' | 'full';
 		darkMode?: boolean;
 		replayKey?: number;
 	}
@@ -19,6 +20,7 @@
 		recommendedQuantity,
 		analyticQuantity,
 		meanDemand,
+		yAxisScale = 'focused',
 		darkMode = false,
 		replayKey = 0
 	}: Props = $props();
@@ -114,6 +116,23 @@
 			points.find((p) => p.order_quantity === meanDemand)?.avg_profit ??
 			points[Math.floor(points.length / 2)]?.avg_profit ??
 			0;
+		const plottedProfitValues = points.flatMap((point) => [
+			point.avg_profit,
+			point.analytic_profit,
+			point.avg_profit_ci_lower,
+			point.avg_profit_ci_upper
+		]);
+		const minProfit = plottedProfitValues.length > 0 ? Math.min(...plottedProfitValues) : 0;
+		const maxProfit = plottedProfitValues.length > 0 ? Math.max(...plottedProfitValues) : 0;
+		const profitSpan = Math.max(maxProfit - minProfit, 1);
+		const focusedPadding = Math.max(profitSpan * 0.18, 1.5);
+		const fullPadding = Math.max(profitSpan * 0.12, 4);
+		const axisFloor =
+			yAxisScale === 'focused'
+				? Math.max(0, minProfit - focusedPadding)
+				: Math.min(0, minProfit - fullPadding);
+		const axisCeiling =
+			yAxisScale === 'focused' ? maxProfit + focusedPadding : maxProfit + fullPadding;
 		const stepAnimation = (step: number, duration: number) =>
 			isReplaying && animationStep === step ? duration : 0;
 
@@ -237,7 +256,7 @@
 				name: 'Mean demand',
 				type: 'line',
 				data: [
-					[meanDemand, 0],
+					[meanDemand, axisFloor],
 					[meanDemand, meanProfit]
 				],
 				symbol: 'none',
@@ -285,7 +304,7 @@
 				name: 'Analytic quantity',
 				type: 'line',
 				data: [
-					[analyticQuantity, 0],
+					[analyticQuantity, axisFloor],
 					[analyticQuantity, analyticPoint.analytic_profit]
 				],
 				symbol: 'none',
@@ -327,7 +346,7 @@
 				name: 'Simulation-optimal quantity',
 				type: 'line',
 				data: [
-					[recommendedQuantity, 0],
+					[recommendedQuantity, axisFloor],
 					[recommendedQuantity, recommendedPoint.avg_profit]
 				],
 				symbol: 'none',
@@ -474,6 +493,8 @@
 			},
 			yAxis: {
 				type: 'value',
+				min: axisFloor,
+				max: axisCeiling,
 				axisLabel: {
 					color: labelColor,
 					fontSize: isCompact ? 11 : 13,
@@ -493,6 +514,7 @@
 		}
 
 		void chartWidth;
+		void yAxisScale;
 
 		chart.setOption(buildOption(), {
 			notMerge: false,
