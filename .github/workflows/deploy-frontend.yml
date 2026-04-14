@@ -17,6 +17,8 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    env:
+      CF_PAGES_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME || 'newsvendor-studio' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,9 +38,13 @@ jobs:
         env:
           PUBLIC_API_BASE_URL: ${{ secrets.PUBLIC_API_BASE_URL }}
 
+      - name: Verify build output
+        run: ls -la .svelte-kit/cloudflare
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .svelte-kit/cloudflare --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME || 'newsvendor-studio' }}
+          wranglerVersion: '3'
+          command: "pages deploy .svelte-kit/cloudflare --project-name=${{ env.CF_PAGES_PROJECT_NAME }}"
