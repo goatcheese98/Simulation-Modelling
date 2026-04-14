@@ -23,6 +23,23 @@
 		() => Math.floor(searchSpan / Math.max(scenario.search_step, 0.0001)) + 1
 	);
 	const margin = $derived.by(() => Math.max(scenario.resale_value - scenario.purchase_cost, 0));
+	const quantityOverlapState = $derived.by(() => {
+		if (!result) {
+			return null;
+		}
+
+		const recommended = result.recommendation.optimal_order_quantity;
+		const analytic = result.recommendation.analytic_order_quantity;
+		const tolerance = Math.max(scenario.search_step / 2, 0.05);
+		const difference = Math.abs(recommended - analytic);
+
+		return {
+			recommended,
+			analytic,
+			difference,
+			overlaps: difference <= tolerance
+		};
+	});
 
 	onMount(() => {
 		const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('theme') : null;
@@ -57,6 +74,7 @@
 		void scenario.search_lower_quantity;
 		void scenario.search_upper_quantity;
 		void scenario.search_step;
+		void scenario.policy_spread_multiplier;
 		if (debounceTimer) clearTimeout(debounceTimer);
 		debounceTimer = setTimeout(() => {
 			void runSimulation();
@@ -217,7 +235,7 @@
 						<p class="eyebrow">Recommended policy</p>
 						<h2>{result.recommendation.optimal_order_quantity.toFixed(1)} units</h2>
 						<p>
-							Best simulated quantity delivers
+							The simulation-optimal quantity from the tested search grid delivers
 							<strong>{currency(result.recommendation.expected_profit_simulated)}</strong>
 							expected profit at a
 							<strong>{percent(result.recommendation.service_level)}</strong>
@@ -229,8 +247,8 @@
 					<div class="summary-grid">
 						<article>
 							<span
-								>Best avg profit <Tooltip
-									hint="The highest average profit achieved by any order quantity in the search window."
+								>Simulation-optimal profit <Tooltip
+									hint="The highest average simulated profit achieved by any tested order quantity in the search window. This is how the simulation-optimal quantity is chosen."
 								/></span
 							>
 							<strong>{currency(result.recommendation.optimal_avg_profit)}</strong>
@@ -238,7 +256,7 @@
 						<article>
 							<span
 								>Analytic qty <Tooltip
-									hint="The order quantity computed from the classic newsvendor critical fractile formula."
+									hint="The formula-based order quantity from the classic newsvendor critical fractile. It is a theoretical optimum under the demand model, not necessarily the exact best point on the simulated search grid."
 								/></span
 							>
 							<strong>{result.recommendation.analytic_order_quantity.toFixed(1)} units</strong>
@@ -259,6 +277,7 @@
 							>
 							<strong>{currency(result.recommendation.profit_p10)} to {currency(result.recommendation.profit_p90)}</strong>
 						</article>
+
 					</div>
 				</section>
 
@@ -266,7 +285,7 @@
 					<article>
 						<span
 							>Expected units sold <Tooltip
-								hint="Average number of units sold per simulation run."
+								hint="Average number of units sold per simulation run for the simulation-optimal quantity."
 							/></span
 						>
 						<strong>{result.recommendation.expected_units_sold.toFixed(1)}</strong>
@@ -274,7 +293,7 @@
 					<article>
 						<span
 							>Expected leftover <Tooltip
-								hint="Average unsold inventory remaining at the end of each period."
+								hint="Average unsold inventory remaining at the end of each period for the simulation-optimal quantity."
 							/></span
 						>
 						<strong>{result.recommendation.expected_leftover.toFixed(1)}</strong>
@@ -282,7 +301,7 @@
 					<article>
 						<span
 							>Expected lost sales <Tooltip
-								hint="Average demand that could not be satisfied because stock ran out."
+								hint="Average demand that could not be satisfied because stock ran out for the simulation-optimal quantity."
 							/></span
 						>
 						<strong>{result.recommendation.expected_lost_sales.toFixed(1)}</strong>
@@ -290,7 +309,7 @@
 					<article>
 						<span
 							>Fill rate <Tooltip
-								hint="Percentage of total demand satisfied immediately from on-hand inventory in a given period."
+								hint="Percentage of total demand satisfied immediately from on-hand inventory in a given period for the simulation-optimal quantity."
 							/></span
 						>
 						<strong>{percent(result.recommendation.fill_rate)}</strong>
@@ -298,7 +317,7 @@
 					<article>
 						<span
 							>Critical fractile <Tooltip
-								hint="The target service level that maximizes expected profit: unit margin / (unit margin + unit cost). It is the probability that demand will be less than or equal to the optimal order quantity."
+								hint="The target service level from the classic newsvendor formula: unit margin / (unit margin + unit cost). It corresponds to the formula-based analytic quantity, not the simulation-optimal quantity."
 							/></span
 						>
 						<strong>{percent(result.recommendation.critical_fractile)}</strong>
@@ -312,21 +331,11 @@
 								<p class="eyebrow">Profit curve</p>
 								<h3>Average profit vs order quantity</h3>
 							</div>
-							<div class="chart-actions">
-								<button
-									class="play-button"
-									type="button"
-									onclick={() => replayKey++}
-									aria-label="Replay animation"
-								>
-									▶ Play
-								</button>
-								<p class="chart-hint">
-									<Tooltip
-										hint="The solid line shows simulated profit over the search grid. The dashed line shows the analytic expected profit curve. Hover over the vertical reference lines for details."
-									/>
-								</p>
-							</div>
+							<p class="chart-hint">
+								<Tooltip
+									hint="The solid line shows simulated profit over the search grid. The dashed line shows the analytic expected profit curve. Hover over the vertical reference lines for details."
+								/>
+							</p>
 						</div>
 						<ProfitCurve
 							points={result.profit_curve}
@@ -336,11 +345,22 @@
 							darkMode={darkMode}
 							replayKey={replayKey}
 						/>
+						<div class="chart-footer">
+							<p>Animation replays only when you trigger it.</p>
+							<button
+								class="play-button"
+								type="button"
+								onclick={() => replayKey++}
+								aria-label="Replay animation"
+							>
+								Play animation
+							</button>
+						</div>
 					</article>
 				</div>
 
 				<div class="card-grid card-grid-secondary">
-					<article class="card">
+					<article class="card policy-card">
 						<div class="card-head">
 							<div>
 								<p class="eyebrow">Policy comparison</p>
@@ -348,6 +368,24 @@
 							</div>
 						</div>
 						<PolicyComparison policies={result.policy_comparison} />
+						<div class="policy-footer">
+							<div class="slider-field">
+								<div class="slider-head">
+									<span>Deviation factor</span>
+									<strong>{scenario.policy_spread_multiplier.toFixed(2)}</strong>
+								</div>
+								<input
+									bind:value={scenario.policy_spread_multiplier}
+									type="range"
+									min="0"
+									max="1"
+									step="0.05"
+								/>
+								<p class="slider-hint">
+									Lean and buffer quantities are computed as Optimal ± (demand half-width × deviation factor). Demand half-width is the <em>Uniform ±</em> value ({scenario.uniform_plus_minus.toFixed(0)} units).
+								</p>
+							</div>
+						</div>
 					</article>
 				</div>
 			{:else}
@@ -587,7 +625,8 @@
 	.mini-stats div,
 	.summary-grid article,
 	.metric-ribbon article {
-		padding: 0.55rem 0.65rem;
+		min-width: 0;
+		padding: 0.55rem 0.9rem 0.55rem 0.65rem;
 		border-radius: 0.75rem;
 		background: rgba(255, 255, 255, 0.72);
 		border: 1px solid rgba(19, 34, 31, 0.06);
@@ -599,6 +638,8 @@
 		display: block;
 		margin-top: 0.15rem;
 		font-size: 0.92rem;
+		line-height: 1.35;
+		overflow-wrap: anywhere;
 	}
 
 	.error {
@@ -650,14 +691,28 @@
 		min-height: 18rem;
 	}
 
-	.chart-actions {
+	.chart-footer {
 		display: flex;
+		justify-content: space-between;
 		align-items: center;
-		gap: 0.45rem;
+		gap: 0.75rem;
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid rgba(19, 34, 31, 0.08);
+	}
+
+	:global([data-theme='dark']) .chart-footer {
+		border-top-color: rgba(255, 255, 255, 0.08);
+	}
+
+	.chart-footer p {
+		margin: 0;
+		font-size: 0.8rem;
+		color: var(--ink-soft);
 	}
 
 	.play-button {
-		padding: 0.35rem 0.65rem;
+		padding: 0.45rem 0.85rem;
 		font-size: 0.8rem;
 		font-weight: 700;
 		border-radius: 999px;
@@ -674,6 +729,93 @@
 	.chart-hint {
 		margin: 0;
 		font-size: 1rem;
+	}
+
+	.policy-footer {
+		margin-top: 0.75rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid rgba(19, 34, 31, 0.08);
+	}
+
+	:global([data-theme='dark']) .policy-footer {
+		border-top-color: rgba(255, 255, 255, 0.08);
+	}
+
+	.slider-field {
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.slider-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	.slider-head span {
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--ink-soft);
+	}
+
+	.slider-head strong {
+		font-size: 0.9rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.slider-field input[type='range'] {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 100%;
+		height: 0.35rem;
+		border-radius: 999px;
+		background: rgba(19, 34, 31, 0.12);
+		cursor: pointer;
+		outline: none;
+	}
+
+	:global([data-theme='dark']) .slider-field input[type='range'] {
+		background: rgba(255, 255, 255, 0.15);
+	}
+
+	.slider-field input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 1rem;
+		height: 1rem;
+		border-radius: 50%;
+		background: var(--accent);
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 2px 6px rgba(23, 36, 34, 0.25);
+		transition: transform 0.1s ease;
+	}
+
+	.slider-field input[type='range']::-webkit-slider-thumb:hover {
+		transform: scale(1.08);
+	}
+
+	.slider-field input[type='range']::-moz-range-thumb {
+		width: 1rem;
+		height: 1rem;
+		border-radius: 50%;
+		background: var(--accent);
+		border: 2px solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 2px 6px rgba(23, 36, 34, 0.25);
+		transition: transform 0.1s ease;
+	}
+
+	.slider-field input[type='range']::-moz-range-thumb:hover {
+		transform: scale(1.08);
+	}
+
+	.slider-hint {
+		margin: 0;
+		font-size: 0.78rem;
+		line-height: 1.4;
+		color: var(--ink-soft);
 	}
 
 	.empty {
@@ -714,6 +856,11 @@
 		.panel-head,
 		.card-head {
 			flex-direction: column;
+		}
+
+		.chart-footer {
+			flex-direction: column;
+			align-items: stretch;
 		}
 
 		h1 {

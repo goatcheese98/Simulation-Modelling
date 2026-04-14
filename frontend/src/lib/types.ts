@@ -7,6 +7,7 @@ export interface SimulationRequestPayload {
 	search_lower_quantity: number;
 	search_upper_quantity: number;
 	search_step: number;
+	policy_spread_multiplier: number;
 	seed?: number | null;
 }
 
@@ -89,5 +90,6 @@ export const defaultScenario: SimulationRequestPayload = {
 	search_lower_quantity: 100,
 	search_upper_quantity: 220,
 	search_step: 5,
+	policy_spread_multiplier: 0.45,
 	seed: null
 };

@@ -126,12 +126,12 @@ def summarize_policy(
     }
 
 
-def build_policy_set(optimal_quantity: float, average_demand: float, spread: float) -> list[Policy]:
+def build_policy_set(optimal_quantity: float, average_demand: float, spread: float, multiplier: float = 0.45) -> list[Policy]:
     policy_candidates = [
         Policy("optimal", "Optimal order", optimal_quantity),
         Policy("mean", "Order the mean", average_demand),
-        Policy("lean", "Lean inventory", max(0.0, optimal_quantity - (spread * 0.45))),
-        Policy("buffered", "Buffer inventory", optimal_quantity + (spread * 0.45)),
+        Policy("lean", "Lean inventory", max(0.0, optimal_quantity - (spread * multiplier))),
+        Policy("buffered", "Buffer inventory", optimal_quantity + (spread * multiplier)),
     ]
 
     deduped: list[Policy] = []
@@ -267,6 +267,7 @@ def run_simulation(payload: SimulationRequest) -> dict[str, object]:
         optimal_quantity=best_quantity,
         average_demand=payload.average_demand,
         spread=payload.uniform_plus_minus,
+        multiplier=payload.policy_spread_multiplier,
     )
     policies.insert(1, Policy("analytic", "Analytic critical-fractile", analytic_quantity))
     policy_comparison = [

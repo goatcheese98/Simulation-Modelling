@@ -32,6 +32,12 @@ class SimulationRequest(BaseModel):
         description="Step size for the order quantity grid search",
     )
     seed: int | None = Field(default=None, description="Optional seed for reproducibility")
+    policy_spread_multiplier: float = Field(
+        default=0.45,
+        ge=0.0,
+        le=1.0,
+        description="Multiplier for lean/buffer policy spread relative to uniform_plus_minus",
+    )
 
     @model_validator(mode="after")
     def validate_search_window(self) -> "SimulationRequest":

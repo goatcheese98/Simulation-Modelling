@@ -14,11 +14,37 @@
 		replayKey?: number;
 	}
 
-	let { points, recommendedQuantity, analyticQuantity, meanDemand, darkMode = false, replayKey = 0 }: Props = $props();
+	let {
+		points,
+		recommendedQuantity,
+		analyticQuantity,
+		meanDemand,
+		darkMode = false,
+		replayKey = 0
+	}: Props = $props();
 
 	let chartHost = $state<HTMLDivElement | null>(null);
 	let chart = $state<ECharts | null>(null);
-	let animationStep = $state(2);
+	let animationStep = $state(5);
+	let isReplaying = $state(false);
+
+	function findClosestPoint(quantity: number): ProfitCurvePoint | null {
+		if (points.length === 0) {
+			return null;
+		}
+
+		return (
+			points.reduce((closest, point) => {
+				if (!closest) {
+					return point;
+				}
+
+				return Math.abs(point.order_quantity - quantity) < Math.abs(closest.order_quantity - quantity)
+					? point
+					: closest;
+			}, null as ProfitCurvePoint | null) ?? null
+		);
+	}
 
 	function currency(value: number): string {
 		return new Intl.NumberFormat('en-US', {
@@ -29,33 +55,42 @@
 	}
 
 	$effect(() => {
-		// Whenever data updates, show everything immediately
 		void points.length;
-		animationStep = 2;
+		isReplaying = false;
+		animationStep = points.length > 0 ? 5 : 0;
 	});
 
 	$effect(() => {
-		// Play animation when replay button is clicked
 		void replayKey;
 		if (replayKey === 0 || points.length === 0) {
 			return;
 		}
+		isReplaying = true;
 		animationStep = 0;
-		const t1 = setTimeout(() => (animationStep = 1), 700);
-		const t2 = setTimeout(() => (animationStep = 2), 1400);
+		const t1 = setTimeout(() => (animationStep = 1), 100);
+		const t2 = setTimeout(() => (animationStep = 2), 1060);
+		const t3 = setTimeout(() => (animationStep = 3), 2020);
+		const t4 = setTimeout(() => (animationStep = 4), 2780);
+		const t5 = setTimeout(() => {
+			animationStep = 5;
+			isReplaying = false;
+		}, 3540);
 		return () => {
+			isReplaying = false;
 			clearTimeout(t1);
 			clearTimeout(t2);
+			clearTimeout(t3);
+			clearTimeout(t4);
+			clearTimeout(t5);
 		};
 	});
 
 	function buildOption(): EChartsOption {
-		const recommendedPoint =
-			points.find((point) => point.order_quantity === recommendedQuantity) ?? points[0] ?? null;
-		const analyticPoint =
-			points.find((point) => point.order_quantity === analyticQuantity) ?? recommendedPoint;
+		const recommendedPoint = findClosestPoint(recommendedQuantity) ?? points[0] ?? null;
+		const analyticPoint = findClosestPoint(analyticQuantity) ?? recommendedPoint;
 		const minQuantity = points.length > 0 ? Math.min(...points.map((point) => point.order_quantity)) : 0;
 		const maxQuantity = points.length > 0 ? Math.max(...points.map((point) => point.order_quantity)) : 0;
+		const quantitiesMerged = Math.abs(recommendedQuantity - analyticQuantity) < 0.15;
 
 		const axisColor = darkMode ? 'rgba(255,255,255,0.25)' : 'rgba(21, 37, 35, 0.22)';
 		const gridColor = darkMode ? 'rgba(255,255,255,0.10)' : 'rgba(21, 37, 35, 0.08)';
@@ -65,63 +100,74 @@
 		const simColor = darkMode ? '#2dd4bf' : '#0f766e';
 		const simArea = darkMode ? 'rgba(45, 212, 191, 0.15)' : 'rgba(15, 118, 110, 0.12)';
 		const anaColor = darkMode ? '#fbbf24' : '#c08a15';
+		const analyticQtyColor = darkMode ? '#d4dbe5' : '#6d7f8b';
 		const bestColor = darkMode ? '#e88b52' : '#d76b30';
 
 		const meanProfit =
 			points.find((p) => p.order_quantity === meanDemand)?.avg_profit ??
 			points[Math.floor(points.length / 2)]?.avg_profit ??
 			0;
+		const stepAnimation = (step: number, duration: number) =>
+			isReplaying && animationStep === step ? duration : 0;
 
-		const referencePoints = [
-			{
-				name: 'Mean demand',
-				x: meanDemand,
-				y: meanProfit,
-				desc: `Mean demand: ${meanDemand.toFixed(1)} units`
-			},
-			{
-				name: 'Analytic quantity',
-				x: analyticQuantity,
-				y: analyticPoint?.analytic_profit ?? 0,
-				desc: `Analytic quantity: ${analyticQuantity.toFixed(1)} units\nAnalytic profit: ${currency(analyticPoint?.analytic_profit ?? 0)}`
-			},
-			{
-				name: 'Best quantity',
-				x: recommendedQuantity,
-				y: recommendedPoint?.avg_profit ?? 0,
-				desc: `Best quantity: ${recommendedQuantity.toFixed(1)} units\nSimulated profit: ${currency(recommendedPoint?.avg_profit ?? 0)}`
-			}
-		];
+		const analyticTooltip = () =>
+			quantitiesMerged
+				? `<div style="display:grid;gap:12px;min-width:290px;">
+						<div style="display:grid;gap:4px;">
+							<div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${analyticQtyColor};">Analytic quantity</div>
+							<div style="font-size:18px;font-weight:700;line-height:1.35;">${analyticQuantity.toFixed(1)} units</div>
+							<div style="font-size:16px;font-weight:600;line-height:1.35;">Analytic profit: ${currency(analyticPoint?.analytic_profit ?? 0)}</div>
+						</div>
+						<div style="height:1px;background:rgba(247,241,232,0.16);"></div>
+						<div style="display:grid;gap:4px;">
+							<div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${bestColor};">Simulation-optimal quantity</div>
+							<div style="font-size:18px;font-weight:700;line-height:1.35;">${recommendedQuantity.toFixed(1)} units</div>
+							<div style="font-size:16px;font-weight:600;line-height:1.35;">Simulation-optimal profit: ${currency(recommendedPoint?.avg_profit ?? 0)}</div>
+						</div>
+					</div>`
+				: `<div style="display:grid;gap:8px;min-width:290px;"><div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${analyticQtyColor};">Analytic quantity</div><div style="font-size:18px;font-weight:700;line-height:1.35;white-space:pre-line;">Analytic quantity: ${analyticQuantity.toFixed(1)} units\nAnalytic profit: ${currency(analyticPoint?.analytic_profit ?? 0)}\nSimulation-optimal quantity: ${recommendedQuantity.toFixed(1)} units\nSimulation-optimal profit: ${currency(recommendedPoint?.avg_profit ?? 0)}</div></div>`;
+
+		const simulationTooltip = () =>
+			quantitiesMerged
+				? `<div style="display:grid;gap:12px;min-width:290px;">
+						<div style="display:grid;gap:4px;">
+							<div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${bestColor};">Simulation-optimal quantity</div>
+							<div style="font-size:18px;font-weight:700;line-height:1.35;">${recommendedQuantity.toFixed(1)} units</div>
+							<div style="font-size:16px;font-weight:600;line-height:1.35;">Simulation-optimal profit: ${currency(recommendedPoint?.avg_profit ?? 0)}</div>
+						</div>
+						<div style="height:1px;background:rgba(247,241,232,0.16);"></div>
+						<div style="display:grid;gap:4px;">
+							<div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${analyticQtyColor};">Analytic quantity</div>
+							<div style="font-size:18px;font-weight:700;line-height:1.35;">${analyticQuantity.toFixed(1)} units</div>
+							<div style="font-size:16px;font-weight:600;line-height:1.35;">Analytic profit: ${currency(analyticPoint?.analytic_profit ?? 0)}</div>
+						</div>
+					</div>`
+				: `<div style="display:grid;gap:8px;min-width:290px;"><div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${bestColor};">Simulation-optimal quantity</div><div style="font-size:18px;font-weight:700;line-height:1.35;white-space:pre-line;">Simulation-optimal quantity: ${recommendedQuantity.toFixed(1)} units\nSimulation-optimal profit: ${currency(recommendedPoint?.avg_profit ?? 0)}\nAnalytic quantity: ${analyticQuantity.toFixed(1)} units\nAnalytic profit: ${currency(analyticPoint?.analytic_profit ?? 0)}</div></div>`;
 
 		const series: any[] = [];
 
-		// Step 1: Analytic profit
-		series.push({
-			name: 'Analytic profit',
-			type: 'line',
-			smooth: true,
-			symbol: 'none',
-			lineStyle: { width: 2, type: 'dashed', color: anaColor },
-			data: points.map((point) => [point.order_quantity, point.analytic_profit]),
-			endLabel: {
-				show: true,
-				formatter: 'Analytic profit',
-				color: anaColor,
-				fontSize: 12,
-				fontWeight: 600,
-				offset: [8, -18]
-			},
-			markLine: analyticPoint
-				? {
-						symbol: 'none',
-						label: { show: false },
-						lineStyle: { type: 'dotted', color: anaColor },
-						data: [{ xAxis: analyticQuantity }]
-					}
-				: undefined
-		});
-
 		if (animationStep >= 1) {
+			series.push({
+				name: 'Analytic profit',
+				type: 'line',
+				smooth: true,
+				symbol: 'none',
+				lineStyle: { width: 2, type: 'dashed', color: anaColor },
+				data: points.map((point) => [point.order_quantity, point.analytic_profit]),
+				animationDuration: stepAnimation(1, 900),
+				animationDurationUpdate: stepAnimation(1, 900),
+				endLabel: {
+					show: true,
+					formatter: 'Analytic profit',
+					color: anaColor,
+					fontSize: 13,
+					fontWeight: 700,
+					offset: [22, -18]
+				}
+			});
+		}
+
+		if (animationStep >= 2) {
 			series.push({
 				name: 'Simulated profit',
 				type: 'line',
@@ -132,69 +178,160 @@
 					color: simArea
 				},
 				data: points.map((point) => [point.order_quantity, point.avg_profit]),
+				animationDuration: stepAnimation(2, 900),
+				animationDurationUpdate: stepAnimation(2, 900),
 				endLabel: {
 					show: true,
 					formatter: 'Simulated profit',
 					color: simColor,
-					fontSize: 12,
-					fontWeight: 600,
-					offset: [8, 18]
-				},
-				markLine: {
-					symbol: 'none',
-					label: { show: false },
-					lineStyle: { type: 'dashed', color: darkMode ? 'rgba(255,255,255,0.25)' : 'rgba(21, 37, 35, 0.3)' },
-					data: [{ xAxis: meanDemand, name: 'Mean demand' }]
+					fontSize: 13,
+					fontWeight: 700,
+					offset: [22, 18]
 				}
 			});
 		}
 
-		if (animationStep >= 2 && recommendedPoint) {
-			series.push(
-				{
-					name: 'Best quantity',
-					type: 'line' as const,
-					data: [],
-					markLine: {
-						symbol: 'none',
-						label: { show: false },
-						lineStyle: { type: 'dashed' as const, color: bestColor },
-						data: [{ xAxis: recommendedQuantity }]
-					}
+		if (animationStep >= 3) {
+			series.push({
+				name: 'Mean demand',
+				type: 'line',
+				data: [
+					[meanDemand, 0],
+					[meanDemand, meanProfit]
+				],
+				symbol: 'none',
+				smooth: false,
+				silent: false,
+				lineStyle: {
+					type: 'dashed',
+					color: darkMode ? 'rgba(255,255,255,0.28)' : 'rgba(21, 37, 35, 0.34)',
+					width: 2
 				},
-				{
-					name: 'References',
-					type: 'scatter',
-					symbolSize: 28,
-					itemStyle: { color: 'transparent', borderWidth: 0 },
-					emphasis: { scale: false },
-					data: referencePoints.map((r) => [r.x, r.y]),
-					tooltip: {
-						trigger: 'item',
-						backgroundColor: tooltipBg,
-						borderWidth: 0,
-						padding: 16,
-						textStyle: {
-							color: tooltipText,
-							fontFamily: 'Space Grotesk Variable, sans-serif',
-							fontSize: 14
-						},
-						formatter: (params: any) => {
-							const idx = typeof params.dataIndex === 'number' ? params.dataIndex : 0;
-							const r = referencePoints[idx];
-							return `<div style="display:grid;gap:8px;"><div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(247,241,232,0.68);">${r.name}</div><div style="font-size:18px;font-weight:700;line-height:1.35;white-space:pre-line;">${r.desc}</div></div>`;
-						}
+				tooltip: { show: false },
+				animationDuration: stepAnimation(3, 440),
+				animationDurationUpdate: stepAnimation(3, 440)
+			});
+
+			series.push({
+				name: '',
+				type: 'scatter',
+				symbol: 'circle',
+				symbolSize: 34,
+				data: [[meanDemand, meanProfit]],
+				itemStyle: { color: 'transparent' },
+				emphasis: { scale: false },
+				z: 29,
+				animationDuration: stepAnimation(3, 440),
+				animationDurationUpdate: stepAnimation(3, 440),
+				tooltip: {
+					trigger: 'item',
+					backgroundColor: tooltipBg,
+					borderWidth: 0,
+					padding: 16,
+					textStyle: {
+						color: tooltipText,
+						fontFamily: 'Space Grotesk Variable, sans-serif',
+						fontSize: 14
 					},
-					z: 10
+					formatter: () =>
+						`<div style="display:grid;gap:8px;min-width:220px;"><div style="font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${darkMode ? '#bfc9c6' : '#6f817b'};">Mean demand</div><div style="font-size:18px;font-weight:700;line-height:1.35;">${meanDemand.toFixed(1)} units</div></div>`
 				}
-			);
+			});
+		}
+
+		if (animationStep >= 4 && analyticPoint) {
+			series.push({
+				name: 'Analytic quantity',
+				type: 'line',
+				data: [
+					[analyticQuantity, 0],
+					[analyticQuantity, analyticPoint.analytic_profit]
+				],
+				symbol: 'none',
+				smooth: false,
+				silent: false,
+				lineStyle: { type: 'dotted', color: analyticQtyColor, width: 2 },
+				animationDuration: stepAnimation(4, 440),
+				animationDurationUpdate: stepAnimation(4, 440)
+			});
+
+			series.push({
+				name: '',
+				type: 'scatter',
+				symbol: 'circle',
+				symbolSize: quantitiesMerged ? 50 : 38,
+				data: [[analyticQuantity, analyticPoint.analytic_profit]],
+				itemStyle: { color: 'transparent' },
+				emphasis: { scale: false },
+				z: 30,
+				animationDuration: stepAnimation(4, 440),
+				animationDurationUpdate: stepAnimation(4, 440),
+				tooltip: {
+					trigger: 'item',
+					backgroundColor: tooltipBg,
+					borderWidth: 0,
+					padding: 16,
+					textStyle: {
+						color: tooltipText,
+						fontFamily: 'Space Grotesk Variable, sans-serif',
+						fontSize: 14
+					},
+					formatter: analyticTooltip
+				}
+			});
+		}
+
+		if (animationStep >= 5 && recommendedPoint) {
+			series.push({
+				name: 'Simulation-optimal quantity',
+				type: 'line',
+				data: [
+					[recommendedQuantity, 0],
+					[recommendedQuantity, recommendedPoint.avg_profit]
+				],
+				symbol: 'none',
+				smooth: false,
+				silent: false,
+				lineStyle: { type: 'dashed', color: bestColor, width: 2 },
+				animationDuration: stepAnimation(5, 440),
+				animationDurationUpdate: stepAnimation(5, 440)
+			});
+
+			series.push({
+				name: '',
+				type: 'scatter',
+				symbol: 'circle',
+				symbolSize: quantitiesMerged ? 50 : 38,
+				data: [[recommendedQuantity, recommendedPoint.avg_profit]],
+				itemStyle: { color: 'transparent' },
+				emphasis: { scale: false },
+				z: 31,
+				animationDuration: stepAnimation(5, 440),
+				animationDurationUpdate: stepAnimation(5, 440),
+				tooltip: {
+					trigger: 'item',
+					backgroundColor: tooltipBg,
+					borderWidth: 0,
+					padding: 16,
+					textStyle: {
+						color: tooltipText,
+						fontFamily: 'Space Grotesk Variable, sans-serif',
+						fontSize: 14
+					},
+					formatter: simulationTooltip
+				}
+			});
 		}
 
 		return {
-			animationDuration: 500,
-			grid: { top: 24, right: 100, bottom: 52, left: 72, containLabel: true },
+			animationDuration: 900,
+			animationEasing: 'cubicOut',
+			animationDurationUpdate: 0,
+			animationEasingUpdate: isReplaying ? 'cubicOut' : undefined,
+			grid: { top: 24, right: 210, bottom: 52, left: 72, containLabel: true },
 			tooltip: {
 				trigger: 'axis',
+				triggerOn: 'mousemove|click',
 				backgroundColor: tooltipBg,
 				borderWidth: 0,
 				padding: 16,
@@ -224,6 +361,7 @@
 				bottom: 0,
 				itemWidth: 12,
 				itemHeight: 12,
+				selectedMode: true,
 				textStyle: {
 					color: labelColor,
 					fontFamily: 'Space Grotesk Variable, sans-serif'
@@ -263,7 +401,11 @@
 			return;
 		}
 
-		chart.setOption(buildOption(), true);
+		chart.setOption(buildOption(), {
+			notMerge: false,
+			lazyUpdate: true,
+			replaceMerge: ['series']
+		});
 	});
 
 	onMount(() => {
@@ -276,7 +418,11 @@
 
 			const echarts = await import('echarts');
 			chart = echarts.init(chartHost, undefined, { renderer: 'canvas' });
-			chart.setOption(buildOption(), true);
+			chart.setOption(buildOption(), {
+				notMerge: false,
+				lazyUpdate: true,
+				replaceMerge: ['series']
+			});
 
 			resizeObserver = new ResizeObserver(() => chart?.resize());
 			resizeObserver.observe(chartHost);
