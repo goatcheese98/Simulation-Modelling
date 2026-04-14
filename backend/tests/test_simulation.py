@@ -2,7 +2,12 @@ from fastapi.testclient import TestClient
 
 from newsvendor_api.main import app
 from newsvendor_api.models import SimulationRequest
-from newsvendor_api.simulation import analytic_optimal_quantity, distribution_bounds, run_simulation
+from newsvendor_api.simulation import (
+    analytic_optimal_quantity,
+    distribution_bounds,
+    expected_profit,
+    run_simulation,
+)
 
 
 client = TestClient(app)
@@ -61,3 +66,17 @@ def test_simulate_endpoint_responds_with_structured_payload() -> None:
     assert body["search_window"]["step"] == 10.0
     assert body["recommendation"]["analytic_order_quantity"] == 165.0
     assert body["sample_runs"][0]["rep"] == 1
+
+
+def test_analytic_quantity_maximizes_uniform_expected_profit() -> None:
+    lower, upper = distribution_bounds(mean=150, half_width=30)
+    analytic_quantity = analytic_optimal_quantity(0.25, 1.0, lower, upper)
+
+    analytic_profit = expected_profit(analytic_quantity, 0.25, 1.0, lower, upper)
+    nearby_profits = [
+        expected_profit(quantity, 0.25, 1.0, lower, upper)
+        for quantity in (150.0, 160.0, 170.0, 180.0)
+    ]
+
+    assert analytic_quantity == 165.0
+    assert all(analytic_profit >= profit for profit in nearby_profits)

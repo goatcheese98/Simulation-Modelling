@@ -139,8 +139,25 @@
 			<h1>Inventory policy analysis</h1>
 		</div>
 		<div class="masthead-right">
-			<button class="theme-button" type="button" onclick={toggleTheme} aria-label="Toggle theme">
-				{darkMode ? '☀️' : '🌙'}
+			<button
+				class="theme-button"
+				type="button"
+				onclick={toggleTheme}
+				aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+				title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+			>
+				{#if darkMode}
+					<svg viewBox="0 0 24 24" aria-hidden="true">
+						<circle cx="12" cy="12" r="4.2" />
+						<path d="M12 2.75v2.5M12 18.75v2.5M21.25 12h-2.5M5.25 12H2.75M18.55 5.45l-1.8 1.8M7.25 16.75l-1.8 1.8M18.55 18.55l-1.8-1.8M7.25 7.25l-1.8-1.8" />
+					</svg>
+				{:else}
+					<svg viewBox="0 0 24 24" aria-hidden="true">
+						<path
+							d="M20.25 14.2A8.55 8.55 0 1 1 9.8 3.75a7.05 7.05 0 0 0 10.45 10.45Z"
+						/>
+					</svg>
+				{/if}
 			</button>
 		</div>
 	</section>
@@ -370,10 +387,9 @@
 						<div class="card-head">
 							<div>
 								<p class="eyebrow">Policy comparison</p>
-								<h3>Compare policies</h3>
 							</div>
 						</div>
-						<PolicyComparison policies={result.policy_comparison} />
+						<PolicyComparison policies={result.policy_comparison} title="Compare policies" />
 						<div class="policy-footer">
 							<div class="slider-field">
 								<div class="slider-head">
@@ -440,15 +456,15 @@
 		border: 1px solid rgba(19, 34, 31, 0.08);
 		border-radius: 0.85rem;
 		background:
-			radial-gradient(circle at top right, rgba(215, 107, 48, 0.13), transparent 35%),
-			linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(251, 245, 236, 0.82));
+			linear-gradient(180deg, rgba(255, 252, 246, 0.98), rgba(249, 242, 231, 0.96)),
+			linear-gradient(90deg, rgba(15, 118, 110, 0.06), rgba(215, 107, 48, 0.04));
 		box-shadow: 0 12px 32px rgba(23, 36, 34, 0.06);
 	}
 
 	:global([data-theme='dark']) .masthead {
 		background:
-			radial-gradient(circle at top right, rgba(232, 139, 82, 0.14), transparent 35%),
-			linear-gradient(180deg, rgba(26, 36, 34, 0.96), rgba(15, 20, 19, 0.82));
+			linear-gradient(180deg, rgba(24, 34, 32, 0.98), rgba(15, 20, 19, 0.94)),
+			linear-gradient(90deg, rgba(45, 212, 191, 0.08), rgba(232, 139, 82, 0.07));
 		border-color: rgba(255, 255, 255, 0.08);
 	}
 
@@ -481,15 +497,47 @@
 	}
 
 	.theme-button {
-		padding: 0.35rem 0.55rem;
-		font-size: 0.9rem;
+		width: 2.5rem;
+		height: 2.5rem;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0;
 		border-radius: 999px;
-		background: rgba(19, 34, 31, 0.06);
-		border: none;
+		border: 1px solid rgba(19, 34, 31, 0.16);
+		background: rgba(255, 255, 255, 0.92);
+		color: var(--accent);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 	}
 
 	:global([data-theme='dark']) .theme-button {
-		background: rgba(255, 255, 255, 0.08);
+		background: rgba(12, 18, 17, 0.92);
+		color: #ffd166;
+		border-color: rgba(255, 255, 255, 0.14);
+		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	}
+
+	.theme-button svg {
+		width: 1.2rem;
+		height: 1.2rem;
+		stroke: currentColor;
+		fill: none;
+		stroke-width: 1.9;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+
+	.theme-button:hover {
+		transform: translateY(-1px);
+		box-shadow:
+			0 8px 18px rgba(15, 118, 110, 0.16),
+			inset 0 1px 0 rgba(255, 255, 255, 0.4);
+	}
+
+	:global([data-theme='dark']) .theme-button:hover {
+		box-shadow:
+			0 8px 18px rgba(0, 0, 0, 0.28),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08);
 	}
 
 	.layout {

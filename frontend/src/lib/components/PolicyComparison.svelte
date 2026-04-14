@@ -4,6 +4,7 @@
 
 	interface Props {
 		policies: PolicyResult[];
+		title?: string;
 	}
 
 	type MetricKey = 'avg_profit' | 'fill_rate' | 'stockout_rate' | 'avg_leftover' | 'avg_lost_sales';
@@ -57,7 +58,7 @@
 		'order-mean': 'Ordering exactly the average demand, ignoring demand uncertainty.'
 	};
 
-	let { policies }: Props = $props();
+	let { policies, title = '' }: Props = $props();
 	let selectedMetric = $state<MetricKey>('avg_profit');
 
 	const sortedPolicies = $derived.by(() =>
@@ -81,6 +82,9 @@
 
 <div class="comparison-shell">
 	<div class="toolbar">
+		{#if title}
+			<h3 class="toolbar-title">{title}</h3>
+		{/if}
 		<label class="select-wrap">
 			<span>Sort by</span>
 			<select bind:value={selectedMetric}>
@@ -136,18 +140,33 @@
 
 	.toolbar {
 		display: flex;
-		justify-content: flex-end;
+		justify-content: space-between;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.toolbar-title {
+		margin: 0;
+		font-size: 1.05rem;
+		line-height: 1.12;
 	}
 
 	.select-wrap {
-		display: flex;
+		margin-left: auto;
+		display: inline-flex;
 		align-items: center;
+		flex-wrap: nowrap;
 		gap: 0.4rem;
 		font-size: 0.75rem;
 		font-weight: 700;
 		color: var(--ink-soft);
 		text-transform: uppercase;
 		letter-spacing: 0.08em;
+		white-space: nowrap;
+	}
+
+	.select-wrap span {
+		line-height: 1;
 	}
 
 	.select-wrap select {
@@ -161,6 +180,7 @@
 		font-weight: 600;
 		text-transform: none;
 		letter-spacing: normal;
+		line-height: 1.2;
 	}
 
 	:global([data-theme='dark']) .select-wrap select {
@@ -258,9 +278,11 @@
 
 	@media (max-width: 720px) {
 		.toolbar {
+			flex-wrap: wrap;
 			justify-content: stretch;
 		}
 
+		.toolbar-title,
 		.select-wrap,
 		.select-wrap select {
 			width: 100%;
