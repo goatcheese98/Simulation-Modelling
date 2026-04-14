@@ -80,6 +80,13 @@ export interface SampleRun {
 	profit: number;
 }
 
+export interface ProfitHistogramBin {
+	bin_start: number;
+	bin_end: number;
+	count: number;
+	share: number;
+}
+
 export interface SimulationResponse {
 	inputs: SimulationRequestPayload & { seed?: number | null };
 	distribution: DistributionSummary;
@@ -87,6 +94,7 @@ export interface SimulationResponse {
 	recommendation: RecommendationSummary;
 	policy_comparison: PolicyResult[];
 	profit_curve: ProfitCurvePoint[];
+	profit_histogram: ProfitHistogramBin[];
 	sample_runs: SampleRun[];
 }
 

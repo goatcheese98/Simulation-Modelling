@@ -7,6 +7,7 @@ from newsvendor_api.simulation import (
     confidence_interval_half_width,
     distribution_bounds,
     expected_profit,
+    histogram_bins,
     run_simulation,
 )
 
@@ -87,6 +88,13 @@ def test_confidence_interval_half_width_is_zero_for_single_value() -> None:
     assert confidence_interval_half_width([12.5]) == 0.0
 
 
+def test_histogram_bins_cover_all_replications() -> None:
+    histogram = histogram_bins([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+
+    assert sum(int(bucket["count"]) for bucket in histogram) == 6
+    assert histogram[0]["bin_start"] <= histogram[0]["bin_end"]
+
+
 def test_run_simulation_returns_confidence_interval_fields() -> None:
     response = run_simulation(
         SimulationRequest(
@@ -115,3 +123,4 @@ def test_run_simulation_returns_confidence_interval_fields() -> None:
     assert optimal_point["avg_profit_ci_half_width"] > 0
     assert optimal_point["avg_profit_ci_lower"] <= optimal_point["avg_profit"]
     assert optimal_point["avg_profit_ci_upper"] >= optimal_point["avg_profit"]
+    assert sum(int(bucket["count"]) for bucket in response["profit_histogram"]) == 4000

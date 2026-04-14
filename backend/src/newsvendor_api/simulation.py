@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import isclose, sqrt
+from math import isclose, log2, sqrt
 import random
 import statistics
 
@@ -41,6 +41,58 @@ def confidence_interval_half_width(sample_values: list[float], confidence_level:
     # Normal approximation is sufficient for the simulation sample sizes used in the app.
     z_value = statistics.NormalDist().inv_cdf(0.5 + (confidence_level / 2))
     return z_value * sample_stdev / sqrt(len(sample_values))
+
+
+def profit_outcomes(
+    demands: list[float],
+    order_quantity: float,
+    purchase_cost: float,
+    resale_value: float,
+) -> list[float]:
+    return [
+        (min(order_quantity, demand) * resale_value) - (order_quantity * purchase_cost) for demand in demands
+    ]
+
+
+def histogram_bins(values: list[float]) -> list[dict[str, float | int]]:
+    if not values:
+        return []
+
+    lower = min(values)
+    upper = max(values)
+    if isclose(lower, upper):
+        return [
+            {
+                "bin_start": round(lower, 2),
+                "bin_end": round(upper, 2),
+                "count": len(values),
+                "share": 1.0,
+            }
+        ]
+
+    bin_count = min(24, max(10, int(round(1 + log2(len(values))))))
+    width = (upper - lower) / bin_count
+    counts = [0 for _ in range(bin_count)]
+
+    for value in values:
+        index = min(int((value - lower) / width), bin_count - 1)
+        counts[index] += 1
+
+    total = len(values)
+    bins: list[dict[str, float | int]] = []
+    for index, count in enumerate(counts):
+        bin_start = lower + (index * width)
+        bin_end = upper if index == bin_count - 1 else lower + ((index + 1) * width)
+        bins.append(
+            {
+                "bin_start": round(bin_start, 2),
+                "bin_end": round(bin_end, 2),
+                "count": count,
+                "share": round(count / total, 4),
+            }
+        )
+
+    return bins
 
 
 def distribution_bounds(mean: float, half_width: float) -> tuple[float, float]:
@@ -293,6 +345,12 @@ def run_simulation(payload: SimulationRequest) -> dict[str, object]:
     ]
     optimal_policy = next(item for item in policy_comparison if item["key"] == "optimal")
     analytic_policy = next((item for item in policy_comparison if item["key"] == "analytic"), None)
+    optimal_profit_outcomes = profit_outcomes(
+        demands,
+        best_quantity,
+        payload.purchase_cost,
+        payload.resale_value,
+    )
     optimal_analytic_profit = expected_profit(
         analytic_quantity,
         payload.purchase_cost,
@@ -341,6 +399,7 @@ def run_simulation(payload: SimulationRequest) -> dict[str, object]:
         },
         "policy_comparison": policy_comparison,
         "profit_curve": curve,
+        "profit_histogram": histogram_bins(optimal_profit_outcomes),
         "sample_runs": sample_runs(
             demands=demands,
             order_quantity=best_quantity,

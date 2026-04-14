@@ -4,6 +4,7 @@
 	import { simulateNewsvendor } from '$lib/api';
 	import PolicyComparison from '$lib/components/PolicyComparison.svelte';
 	import ProfitCurve from '$lib/components/ProfitCurve.svelte';
+	import ProfitHistogram from '$lib/components/ProfitHistogram.svelte';
 	import Tooltip from '$lib/components/Tooltip.svelte';
 	import { defaultScenario, type SimulationRequestPayload, type SimulationResponse } from '$lib/types';
 
@@ -416,6 +417,21 @@
 				</div>
 
 				<div class="card-grid card-grid-secondary">
+					<article class="card histogram-card">
+						<div class="card-head">
+							<div>
+								<p class="eyebrow">Profit outcomes</p>
+								<h3>Profit per replication</h3>
+							</div>
+							<p class="chart-hint">
+								<Tooltip
+									hint="This histogram shows the distribution of simulated profit outcomes across individual Monte Carlo replications for the simulation-optimal quantity."
+								/>
+							</p>
+						</div>
+						<ProfitHistogram bins={result.profit_histogram} darkMode={darkMode} />
+					</article>
+
 					<article class="card policy-card">
 						<div class="card-head">
 							<div>
@@ -795,6 +811,10 @@
 	}
 
 	.chart-card {
+		min-height: 18rem;
+	}
+
+	.histogram-card {
 		min-height: 18rem;
 	}
 
