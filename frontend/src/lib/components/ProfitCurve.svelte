@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 
 	import type { ECharts, EChartsOption } from 'echarts';
+	import type { LegendComponentOption } from 'echarts/components';
 
 	import type { ProfitCurvePoint } from '$lib/types';
 
@@ -111,6 +112,7 @@
 		const anaColor = darkMode ? '#fbbf24' : '#c08a15';
 		const analyticQtyColor = anaColor;
 		const bestColor = simColor;
+		const meanLineColor = darkMode ? 'rgba(255,255,255,0.28)' : 'rgba(21, 37, 35, 0.34)';
 
 		const meanProfit =
 			points.find((p) => p.order_quantity === meanDemand)?.avg_profit ??
@@ -464,6 +466,38 @@
 					fontSize: isCompact ? 11 : 12
 				},
 				selectedMode: true,
+				data: [
+					{
+						name: 'Analytic profit',
+						icon: 'circle',
+						itemStyle: { color: anaColor }
+					},
+					{
+						name: 'Simulated profit',
+						icon: 'circle',
+						itemStyle: { color: simColor }
+					},
+					{
+						name: '95% CI band',
+						icon: 'circle',
+						itemStyle: { color: ciColor }
+					},
+					{
+						name: 'Mean demand',
+						icon: 'circle',
+						itemStyle: { color: meanLineColor }
+					},
+					{
+						name: 'Analytic quantity',
+						icon: 'circle',
+						itemStyle: { color: analyticQtyColor }
+					},
+					{
+						name: 'Simulation-optimal quantity',
+						icon: 'circle',
+						itemStyle: { color: bestColor }
+					}
+				] satisfies LegendComponentOption['data'],
 				textStyle: {
 					color: labelColor,
 					fontFamily: 'Space Grotesk Variable, sans-serif',
