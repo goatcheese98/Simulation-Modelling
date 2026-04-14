@@ -355,10 +355,24 @@
 					const quantity = String(
 						(rows[0] as { axisValue?: string | number } | undefined)?.axisValue ?? ''
 					);
-					const lines = rows
+					const dedupedRows = Array.from(
+						rows.reduce((bySeries, row) => {
+							const seriesName = row.seriesName ?? '';
+							if (!seriesName) {
+								return bySeries;
+							}
+
+							const pointValue = Number(Array.isArray(row.value) ? row.value[1] : row.value);
+							const existing = bySeries.get(seriesName);
+							if (!existing || pointValue > existing.pointValue) {
+								bySeries.set(seriesName, { row, pointValue });
+							}
+							return bySeries;
+						}, new Map<string, { row: (typeof rows)[number]; pointValue: number }>())
+					).map(([, entry]) => entry);
+					const lines = dedupedRows
 						.map((row) => {
-							const pointValue = Array.isArray(row.value) ? row.value[1] : row.value;
-							return `<div style="display:flex;justify-content:space-between;gap:16px;"><span>${row.marker}${row.seriesName}</span><strong>${currency(Number(pointValue))}</strong></div>`;
+							return `<div style="display:flex;justify-content:space-between;gap:16px;"><span>${row.row.marker}${row.row.seriesName}</span><strong>${currency(row.pointValue)}</strong></div>`;
 						})
 						.join('');
 
