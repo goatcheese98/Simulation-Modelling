@@ -88,6 +88,10 @@
 		isLoading = true;
 		errorMessage = '';
 
+		if (scenario.seed == null) {
+			scenario.seed = Math.floor(Math.random() * 1_000_000_000);
+		}
+
 		try {
 			result = await simulateNewsvendor(scenario);
 		} catch (error) {
