@@ -33,6 +33,15 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate frontend API configuration
+        run: |
+          if [ -z "$PUBLIC_API_BASE_URL" ]; then
+            echo "PUBLIC_API_BASE_URL secret is required for frontend production builds."
+            exit 1
+          fi
+        env:
+          PUBLIC_API_BASE_URL: ${{ secrets.PUBLIC_API_BASE_URL }}
+
       - name: Build
         run: npm run build
         env:

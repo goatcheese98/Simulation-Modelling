@@ -11,6 +11,7 @@
 	let result = $state<SimulationResponse | null>(null);
 	let isLoading = $state(false);
 	let errorMessage = $state('');
+	let hasRequestedSimulation = $state(false);
 	let darkMode = $state(false);
 	let replayKey = $state(0);
 
@@ -85,6 +86,7 @@
 	});
 
 	async function runSimulation() {
+		hasRequestedSimulation = true;
 		isLoading = true;
 		errorMessage = '';
 
@@ -392,10 +394,30 @@
 						</div>
 					</article>
 				</div>
+			{:else if isLoading}
+				<section class="empty">
+					<h2>Running the baseline simulation</h2>
+					<p>Loading the default scenario so the optimization charts and policy comparisons can populate.</p>
+				</section>
+			{:else if errorMessage}
+				<section class="empty">
+					<h2>Simulation unavailable</h2>
+					<p>The baseline run could not reach the simulation API. Update the connection and retry.</p>
+					<button class="ghost-button" type="button" onclick={() => void runSimulation()}>
+						Retry baseline scenario
+					</button>
+				</section>
 			{:else}
 				<section class="empty">
-					<h2>Waiting for the first simulation</h2>
-					<p>Submit the scenario to render the optimization charts and policy comparisons.</p>
+					<h2>{hasRequestedSimulation ? 'Preparing the next simulation' : 'Simulation runs automatically'}</h2>
+					<p>
+						{hasRequestedSimulation
+							? 'Adjust any input to rerun the analysis with the updated scenario.'
+							: 'The default scenario runs on page load, and any input change reruns the analysis automatically.'}
+					</p>
+					<button class="ghost-button" type="button" onclick={() => void runSimulation()}>
+						Run baseline scenario
+					</button>
 				</section>
 			{/if}
 		</div>

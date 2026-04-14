@@ -11,11 +11,17 @@ _DEFAULT_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:4173",
     "http://localhost:3000",
+    "https://newsvendor-studio.pages.dev",
 ]
 
 _allowed_origins_env = os.getenv("ALLOWED_ORIGINS")
 if _allowed_origins_env:
-    _DEFAULT_ORIGINS = [origin.strip() for origin in _allowed_origins_env.split(",")]
+    _DEFAULT_ORIGINS = sorted(
+        {
+            *_DEFAULT_ORIGINS,
+            *(origin.strip() for origin in _allowed_origins_env.split(",") if origin.strip()),
+        }
+    )
 
 app = FastAPI(
     title="Newsvendor Studio API",
