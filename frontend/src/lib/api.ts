@@ -1,9 +1,8 @@
 import { dev } from '$app/environment';
-import { PUBLIC_API_BASE_URL } from '$env/static/public';
 
 import type { SimulationRequestPayload, SimulationResponse } from '$lib/types';
 
-const configuredApiBaseUrl = PUBLIC_API_BASE_URL.trim().replace(/\/+$/, '');
+const configuredApiBaseUrl = (import.meta.env.PUBLIC_API_BASE_URL ?? '').trim().replace(/\/+$/, '');
 const API_BASE_URL = configuredApiBaseUrl || (dev ? 'http://127.0.0.1:8000' : '');
 
 export async function simulateNewsvendor(
