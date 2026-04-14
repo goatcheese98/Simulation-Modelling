@@ -41,19 +41,11 @@ jobs:
       - name: Verify build output
         run: ls -la .svelte-kit/cloudflare
 
-      - name: Create Cloudflare Pages project if needed
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '3'
-          command: "pages project create ${{ env.CF_PAGES_PROJECT_NAME }} --production-branch=main"
-        continue-on-error: true
-
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: '3'
-          command: "pages deploy .svelte-kit/cloudflare --project-name=${{ env.CF_PAGES_PROJECT_NAME }} --branch=main"
+          projectName: ${{ env.CF_PAGES_PROJECT_NAME }}
+          directory: .svelte-kit/cloudflare
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
