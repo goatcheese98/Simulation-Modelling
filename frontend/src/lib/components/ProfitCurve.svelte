@@ -55,6 +55,10 @@
 		}).format(value);
 	}
 
+	function units(value: number): string {
+		return `${value.toFixed(1)} units`;
+	}
+
 	$effect(() => {
 		void points.length;
 		isReplaying = false;
@@ -372,7 +376,13 @@
 					).map(([, entry]) => entry);
 					const lines = dedupedRows
 						.map((row) => {
-							return `<div style="display:flex;justify-content:space-between;gap:16px;"><span>${row.row.marker}${row.row.seriesName}</span><strong>${currency(row.pointValue)}</strong></div>`;
+							const valueLabel =
+								row.row.seriesName === 'Analytic quantity' ||
+								row.row.seriesName === 'Simulation-optimal quantity' ||
+								row.row.seriesName === 'Mean demand'
+									? units(Number(quantity))
+									: currency(row.pointValue);
+							return `<div style="display:flex;justify-content:space-between;gap:16px;"><span>${row.row.marker}${row.row.seriesName}</span><strong>${valueLabel}</strong></div>`;
 						})
 						.join('');
 
