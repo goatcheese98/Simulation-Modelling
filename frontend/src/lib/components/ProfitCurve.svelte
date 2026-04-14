@@ -100,8 +100,8 @@
 		const simColor = darkMode ? '#2dd4bf' : '#0f766e';
 		const simArea = darkMode ? 'rgba(45, 212, 191, 0.15)' : 'rgba(15, 118, 110, 0.12)';
 		const anaColor = darkMode ? '#fbbf24' : '#c08a15';
-		const analyticQtyColor = darkMode ? '#d4dbe5' : '#6d7f8b';
-		const bestColor = darkMode ? '#e88b52' : '#d76b30';
+		const analyticQtyColor = anaColor;
+		const bestColor = simColor;
 
 		const meanProfit =
 			points.find((p) => p.order_quantity === meanDemand)?.avg_profit ??

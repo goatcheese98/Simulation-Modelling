@@ -369,7 +369,15 @@
 							replayKey={replayKey}
 						/>
 						<div class="chart-footer">
-							<p>Animation replays only when you trigger it.</p>
+							<div class="chart-footer-copy">
+								{#if quantityOverlapState?.overlaps}
+									<p>
+										Analytic and simulation-optimal quantities overlap at
+										<strong>{quantityOverlapState.recommended.toFixed(1)} units</strong>.
+									</p>
+								{/if}
+								<p>Animation replays only when you trigger it.</p>
+							</div>
 							<button
 								class="play-button"
 								type="button"
@@ -783,6 +791,15 @@
 		margin: 0;
 		font-size: 0.8rem;
 		color: var(--ink-soft);
+	}
+
+	.chart-footer-copy {
+		display: grid;
+		gap: 0.25rem;
+	}
+
+	.chart-footer-copy strong {
+		color: var(--ink);
 	}
 
 	.play-button {
