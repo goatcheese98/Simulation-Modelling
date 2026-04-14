@@ -4,6 +4,7 @@ from newsvendor_api.main import app
 from newsvendor_api.models import SimulationRequest
 from newsvendor_api.simulation import (
     analytic_optimal_quantity,
+    confidence_interval_half_width,
     distribution_bounds,
     expected_profit,
     run_simulation,
@@ -80,3 +81,37 @@ def test_analytic_quantity_maximizes_uniform_expected_profit() -> None:
 
     assert analytic_quantity == 165.0
     assert all(analytic_profit >= profit for profit in nearby_profits)
+
+
+def test_confidence_interval_half_width_is_zero_for_single_value() -> None:
+    assert confidence_interval_half_width([12.5]) == 0.0
+
+
+def test_run_simulation_returns_confidence_interval_fields() -> None:
+    response = run_simulation(
+        SimulationRequest(
+            purchase_cost=0.25,
+            resale_value=1.0,
+            average_demand=150,
+            uniform_plus_minus=30,
+            repetitions=4000,
+            search_lower_quantity=100,
+            search_upper_quantity=220,
+            search_step=5,
+            seed=17,
+        )
+    )
+
+    recommendation = response["recommendation"]
+    optimal_point = next(
+        point
+        for point in response["profit_curve"]
+        if point["order_quantity"] == recommendation["optimal_order_quantity"]
+    )
+
+    assert recommendation["profit_ci_half_width"] > 0
+    assert recommendation["profit_ci_lower"] <= recommendation["expected_profit_simulated"]
+    assert recommendation["profit_ci_upper"] >= recommendation["expected_profit_simulated"]
+    assert optimal_point["avg_profit_ci_half_width"] > 0
+    assert optimal_point["avg_profit_ci_lower"] <= optimal_point["avg_profit"]
+    assert optimal_point["avg_profit_ci_upper"] >= optimal_point["avg_profit"]

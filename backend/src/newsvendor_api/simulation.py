@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import isclose
+from math import isclose, sqrt
 import random
 import statistics
 
@@ -31,6 +31,16 @@ def percentile(values: list[float], p: float) -> float:
     upper_index = min(lower_index + 1, len(ordered) - 1)
     fraction = raw_index - lower_index
     return ordered[lower_index] + (ordered[upper_index] - ordered[lower_index]) * fraction
+
+
+def confidence_interval_half_width(sample_values: list[float], confidence_level: float = 0.95) -> float:
+    if len(sample_values) < 2:
+        return 0.0
+
+    sample_stdev = statistics.stdev(sample_values)
+    # Normal approximation is sufficient for the simulation sample sizes used in the app.
+    z_value = statistics.NormalDist().inv_cdf(0.5 + (confidence_level / 2))
+    return z_value * sample_stdev / sqrt(len(sample_values))
 
 
 def distribution_bounds(mean: float, half_width: float) -> tuple[float, float]:
@@ -111,12 +121,17 @@ def summarize_policy(
 
     mean_demand = statistics.fmean(demands) if demands else 0.0
     mean_sold = statistics.fmean(sold_units) if sold_units else 0.0
+    avg_profit = statistics.fmean(profits) if profits else 0.0
+    profit_ci_half_width = confidence_interval_half_width(profits)
 
     return {
         "key": policy.key,
         "label": policy.label,
         "order_quantity": round(policy.order_quantity, 2),
-        "avg_profit": round(statistics.fmean(profits) if profits else 0.0, 4),
+        "avg_profit": round(avg_profit, 4),
+        "profit_ci_half_width": round(profit_ci_half_width, 4),
+        "profit_ci_lower": round(avg_profit - profit_ci_half_width, 4),
+        "profit_ci_upper": round(avg_profit + profit_ci_half_width, 4),
         "profit_p10": round(percentile(profits, 0.10), 4),
         "profit_p90": round(percentile(profits, 0.90), 4),
         "avg_leftover": round(statistics.fmean(leftovers) if leftovers else 0.0, 4),
@@ -199,6 +214,9 @@ def profit_curve(
             {
                 "order_quantity": round(quantity, 2),
                 "avg_profit": float(policy["avg_profit"]),
+                "avg_profit_ci_half_width": float(policy["profit_ci_half_width"]),
+                "avg_profit_ci_lower": float(policy["profit_ci_lower"]),
+                "avg_profit_ci_upper": float(policy["profit_ci_upper"]),
                 "analytic_profit": round(
                     expected_profit(quantity, purchase_cost, resale_value, lower_demand, upper_demand),
                     4,
@@ -309,6 +327,9 @@ def run_simulation(payload: SimulationRequest) -> dict[str, object]:
             "analytic_order_quantity": round(analytic_quantity, 2),
             "expected_profit_analytic": round(optimal_analytic_profit, 4),
             "expected_profit_simulated": optimal_policy["avg_profit"],
+            "profit_ci_half_width": optimal_policy["profit_ci_half_width"],
+            "profit_ci_lower": optimal_policy["profit_ci_lower"],
+            "profit_ci_upper": optimal_policy["profit_ci_upper"],
             "profit_p10": optimal_policy["profit_p10"],
             "profit_p90": optimal_policy["profit_p90"],
             "analytic_profit_simulated": analytic_policy["avg_profit"] if analytic_policy else None,

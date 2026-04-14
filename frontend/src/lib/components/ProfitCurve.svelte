@@ -105,6 +105,7 @@
 		const tooltipText = darkMode ? '#f2f2f2' : '#f7f1e8';
 		const simColor = darkMode ? '#2dd4bf' : '#0f766e';
 		const simArea = darkMode ? 'rgba(45, 212, 191, 0.15)' : 'rgba(15, 118, 110, 0.12)';
+		const ciColor = darkMode ? 'rgba(156, 204, 101, 0.9)' : 'rgba(96, 138, 48, 0.85)';
 		const anaColor = darkMode ? '#fbbf24' : '#c08a15';
 		const analyticQtyColor = anaColor;
 		const bestColor = simColor;
@@ -194,6 +195,40 @@
 					fontWeight: 700,
 					offset: [22, 18]
 				}
+			});
+
+			series.push({
+				name: '95% CI band',
+				type: 'line',
+				smooth: true,
+				symbol: 'none',
+				silent: true,
+				lineStyle: {
+					width: isCompact ? 1.2 : 1.4,
+					type: 'dashed',
+					color: ciColor,
+					opacity: 0.72
+				},
+				data: points.map((point) => [point.order_quantity, point.avg_profit_ci_upper]),
+				animationDuration: stepAnimation(2, 900),
+				animationDurationUpdate: stepAnimation(2, 900)
+			});
+
+			series.push({
+				name: '95% CI band',
+				type: 'line',
+				smooth: true,
+				symbol: 'none',
+				silent: true,
+				lineStyle: {
+					width: isCompact ? 1.2 : 1.4,
+					type: 'dashed',
+					color: ciColor,
+					opacity: 0.72
+				},
+				data: points.map((point) => [point.order_quantity, point.avg_profit_ci_lower]),
+				animationDuration: stepAnimation(2, 900),
+				animationDurationUpdate: stepAnimation(2, 900)
 			});
 		}
 
@@ -356,9 +391,11 @@
 					typeof value === 'number' ? currency(value) : String(value ?? ''),
 				formatter: (params) => {
 					const rows = Array.isArray(params) ? params : [params];
-					const quantity = String(
-						(rows[0] as { axisValue?: string | number } | undefined)?.axisValue ?? ''
+					const quantityValue = Number(
+						(rows[0] as { axisValue?: string | number } | undefined)?.axisValue ?? 0
 					);
+					const quantity = String(quantityValue);
+					const selectedPoint = findClosestPoint(quantityValue);
 					const dedupedRows = Array.from(
 						rows.reduce((bySeries, row) => {
 							const seriesName = row.seriesName ?? '';
@@ -380,7 +417,9 @@
 								row.row.seriesName === 'Analytic quantity' ||
 								row.row.seriesName === 'Simulation-optimal quantity' ||
 								row.row.seriesName === 'Mean demand'
-									? units(Number(quantity))
+									? units(quantityValue)
+									: row.row.seriesName === '95% CI band' && selectedPoint
+										? `${currency(selectedPoint.avg_profit_ci_lower)} to ${currency(selectedPoint.avg_profit_ci_upper)}`
 									: currency(row.pointValue);
 							return `<div style="display:flex;justify-content:space-between;gap:16px;"><span>${row.row.marker}${row.row.seriesName}</span><strong>${valueLabel}</strong></div>`;
 						})

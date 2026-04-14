@@ -294,11 +294,11 @@
 						</article>
 						<article>
 							<span
-								>Simulated 90% band <Tooltip
-									hint="The range from the 10th to the 90th percentile of simulated profit outcomes."
+								>Simulated 95% CI <Tooltip
+									hint="The 95% confidence interval around the Monte Carlo average profit estimate for the simulation-optimal quantity."
 								/></span
 							>
-							<strong>{currency(result.recommendation.profit_p10)} to {currency(result.recommendation.profit_p90)}</strong>
+							<strong>{currency(result.recommendation.profit_ci_lower)} to {currency(result.recommendation.profit_ci_upper)}</strong>
 						</article>
 
 					</div>
@@ -356,7 +356,7 @@
 							</div>
 							<p class="chart-hint">
 								<Tooltip
-									hint="The solid line shows simulated profit over the search grid. The dashed line shows the analytic expected profit curve. Hover over the vertical reference lines for details."
+									hint="The solid line shows simulated profit over the search grid, the dashed line shows the analytic expected profit curve, and the green dashed band shows the 95% confidence interval around the simulated profit estimate."
 								/>
 							</p>
 						</div>

@@ -26,6 +26,9 @@ export interface RecommendationSummary {
 	analytic_order_quantity: number;
 	expected_profit_analytic: number;
 	expected_profit_simulated: number;
+	profit_ci_half_width: number;
+	profit_ci_lower: number;
+	profit_ci_upper: number;
 	analytic_profit_simulated?: number | null;
 	profit_p10: number;
 	profit_p90: number;
@@ -41,6 +44,9 @@ export interface PolicyResult {
 	label: string;
 	order_quantity: number;
 	avg_profit: number;
+	profit_ci_half_width: number;
+	profit_ci_lower: number;
+	profit_ci_upper: number;
 	profit_p10: number;
 	profit_p90: number;
 	avg_leftover: number;
@@ -52,6 +58,9 @@ export interface PolicyResult {
 export interface ProfitCurvePoint {
 	order_quantity: number;
 	avg_profit: number;
+	avg_profit_ci_half_width: number;
+	avg_profit_ci_lower: number;
+	avg_profit_ci_upper: number;
 	analytic_profit: number;
 }
 
