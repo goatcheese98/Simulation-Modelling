@@ -1,0 +1,73 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: Newsvendor Studio
+      - heading "Inventory policy analysis" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Model uniform demand, search for the best order quantity, and compare against analytic policies.
+    - generic [ref=e9]:
+      - paragraph [ref=e10]: Demand band
+      - strong [ref=e11]: 120–180 units
+      - generic [ref=e12]: 25 candidates
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - paragraph [ref=e17]: Scenario
+          - heading "Decision inputs" [level=2] [ref=e18]
+        - button "Reset" [ref=e19] [cursor=pointer]
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "Economics" [level=3] [ref=e22]
+          - paragraph [ref=e23]: Unit margin and revenue assumptions.
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Purchase cost
+            - spinbutton "Purchase cost" [ref=e27]: "0.25"
+          - generic [ref=e28]:
+            - generic [ref=e29]: Resale value
+            - spinbutton "Resale value" [ref=e30]: "1"
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "Demand model" [level=3] [ref=e33]
+          - paragraph [ref=e34]: Uniform demand centered around the average.
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: Average demand
+            - spinbutton "Average demand" [ref=e38]: "150"
+          - generic [ref=e39]:
+            - generic [ref=e40]: Uniform +/-
+            - spinbutton "Uniform +/-" [ref=e41]: "30"
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - heading "Order quantity search" [level=3] [ref=e44]
+          - paragraph [ref=e45]: Search the best order quantity over a controlled grid.
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: Lower limit
+            - spinbutton "Lower limit" [ref=e49]: "100"
+          - generic [ref=e50]:
+            - generic [ref=e51]: Upper limit
+            - spinbutton "Upper limit" [ref=e52]: "220"
+          - generic [ref=e53]:
+            - generic [ref=e54]: Step size
+            - spinbutton "Step size" [ref=e55]: "5"
+          - generic [ref=e56]:
+            - generic [ref=e57]: Repetitions
+            - spinbutton "Repetitions" [ref=e58]: "5000"
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - text: Demand band
+            - strong [ref=e61]: 120 to 180
+          - generic [ref=e62]:
+            - text: Candidates
+            - strong [ref=e63]: "25"
+          - generic [ref=e64]:
+            - text: Search span
+            - strong [ref=e65]: 120 units
+      - generic [ref=e67]:
+        - text: Unit margin
+        - strong [ref=e68]: $0.75
+      - button "Update analysis" [ref=e69] [cursor=pointer]
+    - generic [ref=e71]:
+      - heading "Waiting for the first simulation" [level=2] [ref=e72]
+      - paragraph [ref=e73]: Submit the scenario to render the optimization charts and policy comparisons.

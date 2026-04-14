@@ -1,0 +1,232 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - paragraph [ref=e6]: Newsvendor Studio
+      - heading "Inventory policy analysis" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Model uniform demand, search for the best order quantity, and compare against analytic policies.
+    - generic [ref=e9]:
+      - paragraph [ref=e10]: Demand band
+      - strong [ref=e11]: 120–180 units
+      - generic [ref=e12]: 25 candidates
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - paragraph [ref=e17]: Scenario
+          - heading "Decision inputs" [level=2] [ref=e18]
+        - button "Reset" [ref=e19] [cursor=pointer]
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - heading "Economics" [level=3] [ref=e22]
+          - paragraph [ref=e23]: Unit margin and revenue assumptions.
+        - generic [ref=e24]:
+          - generic [ref=e25]:
+            - generic [ref=e26]: Purchase cost
+            - spinbutton "Purchase cost" [ref=e27]: "0.25"
+          - generic [ref=e28]:
+            - generic [ref=e29]: Resale value
+            - spinbutton "Resale value" [ref=e30]: "1"
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "Demand model" [level=3] [ref=e33]
+          - paragraph [ref=e34]: Uniform demand centered around the average.
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: Average demand
+            - spinbutton "Average demand" [ref=e38]: "150"
+          - generic [ref=e39]:
+            - generic [ref=e40]: Uniform +/-
+            - spinbutton "Uniform +/-" [ref=e41]: "30"
+      - generic [ref=e42]:
+        - generic [ref=e43]:
+          - heading "Order quantity search" [level=3] [ref=e44]
+          - paragraph [ref=e45]: Search the best order quantity over a controlled grid.
+        - generic [ref=e46]:
+          - generic [ref=e47]:
+            - generic [ref=e48]: Lower limit
+            - spinbutton "Lower limit" [ref=e49]: "100"
+          - generic [ref=e50]:
+            - generic [ref=e51]: Upper limit
+            - spinbutton "Upper limit" [ref=e52]: "220"
+          - generic [ref=e53]:
+            - generic [ref=e54]: Step size
+            - spinbutton "Step size" [ref=e55]: "5"
+          - generic [ref=e56]:
+            - generic [ref=e57]: Repetitions
+            - spinbutton "Repetitions" [ref=e58]: "5000"
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - text: Demand band
+            - strong [ref=e61]: 120 to 180
+          - generic [ref=e62]:
+            - text: Candidates
+            - strong [ref=e63]: "25"
+          - generic [ref=e64]:
+            - text: Search span
+            - strong [ref=e65]: 120 units
+      - generic [ref=e67]:
+        - text: Unit margin
+        - strong [ref=e68]: $0.75
+      - button "Update analysis" [ref=e69] [cursor=pointer]
+    - generic [ref=e70]:
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - paragraph [ref=e76]: Recommended policy
+          - heading "165.0 units" [level=2] [ref=e77]
+          - paragraph [ref=e78]:
+            - text: Best simulated quantity delivers
+            - strong [ref=e79]: $106.90
+            - text: expected profit at a
+            - strong [ref=e80]: 75.1%
+            - text: service level.
+        - generic [ref=e81]:
+          - article [ref=e82]:
+            - generic [ref=e83]:
+              - text: Best avg profit
+              - generic [ref=e85]: "?"
+            - strong [ref=e86]: $106.90
+          - article [ref=e87]:
+            - generic [ref=e88]:
+              - text: Analytic qty
+              - generic [ref=e90]: "?"
+            - strong [ref=e91]: 165.0 units
+          - article [ref=e92]:
+            - generic [ref=e93]:
+              - text: Analytic profit
+              - generic [ref=e95]: "?"
+            - strong [ref=e96]: $106.88
+          - article [ref=e97]:
+            - generic [ref=e98]:
+              - text: Simulated 90% band
+              - generic [ref=e100]: "?"
+            - strong [ref=e101]: $84.75 to $123.75
+      - generic [ref=e102]:
+        - article [ref=e103]:
+          - generic [ref=e104]:
+            - text: Expected units sold
+            - generic [ref=e106]: "?"
+          - strong [ref=e107]: "148.1"
+        - article [ref=e108]:
+          - generic [ref=e109]:
+            - text: Expected leftover
+            - generic [ref=e111]: "?"
+          - strong [ref=e112]: "16.9"
+        - article [ref=e113]:
+          - generic [ref=e114]:
+            - text: Expected lost sales
+            - generic [ref=e116]: "?"
+          - strong [ref=e117]: "1.9"
+        - article [ref=e118]:
+          - generic [ref=e119]:
+            - text: Fill rate
+            - generic [ref=e121]: "?"
+          - strong [ref=e122]: 98.8%
+        - article [ref=e123]:
+          - generic [ref=e124]:
+            - text: Critical fractile
+            - generic [ref=e126]: "?"
+          - strong [ref=e127]: 75.0%
+      - generic [ref=e128]:
+        - article [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]:
+              - paragraph [ref=e132]: Profit curve
+              - heading "Average profit vs order quantity" [level=3] [ref=e133]
+            - paragraph [ref=e134]:
+              - generic [ref=e136]: "?"
+          - generic "Expected profit by order quantity" [ref=e138]
+        - article [ref=e141]:
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - text: Search winner
+                - generic [ref=e146]: "?"
+              - strong [ref=e147]: 165.0 units
+            - generic [ref=e148]:
+              - generic [ref=e149]:
+                - text: Analytic qty
+                - generic [ref=e151]: "?"
+              - strong [ref=e152]: 165.0 units
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - text: Demand band
+                - generic [ref=e156]: "?"
+              - strong [ref=e157]: 120 to 180
+      - article [ref=e159]:
+        - generic [ref=e161]:
+          - paragraph [ref=e162]: Policy comparison
+          - heading "Compare policies" [level=3] [ref=e163]
+        - generic [ref=e164]:
+          - generic [ref=e166]:
+            - generic [ref=e167]: Sort by
+            - combobox "Sort by" [ref=e168]:
+              - option "Expected profit" [selected]
+              - option "Fill rate"
+              - option "Stockout rate"
+              - option "Expected leftover"
+              - option "Expected lost sales"
+          - table [ref=e170]:
+            - rowgroup [ref=e171]:
+              - row "Policy Optimal order Q = 165.0 Analytic critical-fractile Q = 165.0 Lean inventory Q = 151.5 Buffer inventory Q = 178.5 Order the mean Q = 150.0" [ref=e172]:
+                - columnheader "Policy" [ref=e173]
+                - columnheader "Optimal order Q = 165.0" [ref=e174]:
+                  - generic [ref=e175]: Optimal order
+                  - generic [ref=e176]: Q = 165.0
+                - columnheader "Analytic critical-fractile Q = 165.0" [ref=e177]:
+                  - generic [ref=e178]: Analytic critical-fractile
+                  - generic [ref=e179]: Q = 165.0
+                - columnheader "Lean inventory Q = 151.5" [ref=e180]:
+                  - generic [ref=e181]: Lean inventory
+                  - generic [ref=e182]: Q = 151.5
+                - columnheader "Buffer inventory Q = 178.5" [ref=e183]:
+                  - generic [ref=e184]: Buffer inventory
+                  - generic [ref=e185]: Q = 178.5
+                - columnheader "Order the mean Q = 150.0" [ref=e186]:
+                  - generic [ref=e187]: Order the mean
+                  - generic [ref=e188]: Q = 150.0
+            - rowgroup [ref=e189]:
+              - row "Expected profit ? $106.90 $106.90 $105.37 $105.35 $105.01" [ref=e190]:
+                - cell "Expected profit ?" [ref=e191]:
+                  - text: Expected profit
+                  - generic [ref=e193]: "?"
+                - cell "$106.90" [ref=e194]
+                - cell "$106.90" [ref=e195]
+                - cell "$105.37" [ref=e196]
+                - cell "$105.35" [ref=e197]
+                - cell "$105.01" [ref=e198]
+              - row "Fill rate ? 98.8% 98.8% 95.5% 100.0% 95.0%" [ref=e199]:
+                - cell "Fill rate ?" [ref=e200]:
+                  - text: Fill rate
+                  - generic [ref=e202]: "?"
+                - cell "98.8%" [ref=e203]
+                - cell "98.8%" [ref=e204]
+                - cell "95.5%" [ref=e205]
+                - cell "100.0%" [ref=e206]
+                - cell "95.0%" [ref=e207]
+              - row "Stockout rate ? 24.9% 24.9% 47.9% 2.4% 50.6%" [ref=e208]:
+                - cell "Stockout rate ?" [ref=e209]:
+                  - text: Stockout rate
+                  - generic [ref=e211]: "?"
+                - cell "24.9%" [ref=e212]
+                - cell "24.9%" [ref=e213]
+                - cell "47.9%" [ref=e214]
+                - cell "2.4%" [ref=e215]
+                - cell "50.6%" [ref=e216]
+              - row "Expected leftover ? 16.9 16.9 8.3 28.5 7.5" [ref=e217]:
+                - cell "Expected leftover ?" [ref=e218]:
+                  - text: Expected leftover
+                  - generic [ref=e220]: "?"
+                - cell "16.9" [ref=e221]
+                - cell "16.9" [ref=e222]
+                - cell "8.3" [ref=e223]
+                - cell "28.5" [ref=e224]
+                - cell "7.5" [ref=e225]
+              - row "Expected lost sales ? 1.8 1.8 6.7 0.0 7.5" [ref=e226]:
+                - cell "Expected lost sales ?" [ref=e227]:
+                  - text: Expected lost sales
+                  - generic [ref=e229]: "?"
+                - cell "1.8" [ref=e230]
+                - cell "1.8" [ref=e231]
+                - cell "6.7" [ref=e232]
+                - cell "0.0" [ref=e233]
+                - cell "7.5" [ref=e234]
